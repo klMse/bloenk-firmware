@@ -1,3 +1,4 @@
+#include "light_ws2812.h"
 #include "requests.h"
 #include "usbdrv.h"
 
@@ -18,18 +19,12 @@ enum bloenk_version {
     BLOENK_LEGACY,
 };
 
-struct LED {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-};
-
 struct bloenk_legacy {
     uint8_t current_led;
 };
 
-struct LEDs {
-    struct LED leds[LED_MAX_COUNT];
+struct bloenk {
+    struct cRGB leds[LED_MAX_COUNT];
     uint8_t led_count;
     enum bloenk_version version;
     union {
@@ -38,9 +33,9 @@ struct LEDs {
 };
 
 uint8_t EE_led_count EEMEM = 1;
-static struct LEDs leds;
+static struct bloenk leds;
 
-static usbMsgLen_t handle_legacy(usbRequest_t* req) {
+static usbMsgLen_t handle_legacy(const usbRequest_t* const req) {
     uint8_t ret = 0;
     uint8_t val;
 
@@ -67,6 +62,7 @@ static usbMsgLen_t handle_legacy(usbRequest_t* req) {
         break;
 
     case RQ_WRITE_TO_LEDS:
+        ws2812_setleds(leds.leds, leds.led_count);
         break;
 
 #ifndef BLOENK_LED_COUNT
@@ -121,6 +117,8 @@ int main(void) {
 #else
     leds.led_count = LED_DEFAULT_COUNT;
 #endif
+    // Technically this will be zero initialised
+    leds.version = BLOENK_LEGACY;
 
     while (1) {
         wdt_reset();
