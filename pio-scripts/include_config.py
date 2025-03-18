@@ -6,6 +6,10 @@ def add_include(env, node, configs):
     return env.Object(
         node,
         CPPPATH=[env["PROJECT_INCLUDE_DIR"]] + env["CPPPATH"],
+        # May I familiarize you with -include :/
+        # This is currently needed because light_ws2812 has a ws2812_config.h in the same
+        # directory as the source files that include it. So we have to force the include and
+        # use the same header guards.
         CCFLAGS=env["CCFLAGS"] + [("-include", config) for config in configs]
     )
 
