@@ -33,7 +33,7 @@ struct bloenk {
 };
 
 uint8_t EE_led_count EEMEM = 1;
-static struct bloenk leds;
+static struct bloenk bloenk;
 
 static usbMsgLen_t handle_legacy(const usbRequest_t* const req) {
     uint8_t ret = 0;
@@ -42,27 +42,27 @@ static usbMsgLen_t handle_legacy(const usbRequest_t* const req) {
     switch (req->bRequest) {
     case RQ_SET_CURRENT_LED:
         val = req->wValue.bytes[0];
-        if (val < leds.led_count)
-            leds.legacy.current_led = val;
+        if (val < bloenk.led_count)
+            bloenk.legacy.current_led = val;
         break;
 
     case RQ_SET_COLOR_LED_R:
         val = req->wValue.bytes[0];
-        leds.leds[leds.legacy.current_led].r = val;
+        bloenk.leds[bloenk.legacy.current_led].r = val;
         break;
 
     case RQ_SET_COLOR_LED_G:
         val = req->wValue.bytes[0];
-        leds.leds[leds.legacy.current_led].g = val;
+        bloenk.leds[bloenk.legacy.current_led].g = val;
         break;
 
     case RQ_SET_COLOR_LED_B:
         val = req->wValue.bytes[0];
-        leds.leds[leds.legacy.current_led].b = val;
+        bloenk.leds[bloenk.legacy.current_led].b = val;
         break;
 
     case RQ_WRITE_TO_LEDS:
-        ws2812_setleds(leds.leds, leds.led_count);
+        ws2812_setleds(bloenk.leds, bloenk.led_count);
         break;
 
 #ifndef BLOENK_LED_COUNT
@@ -71,15 +71,15 @@ static usbMsgLen_t handle_legacy(const usbRequest_t* const req) {
         if (val == 0 || val >= LED_MAX_COUNT)
             break;
 
-        if (leds.led_count != val) {
-            leds.led_count = val;
+        if (bloenk.led_count != val) {
+            bloenk.led_count = val;
             eeprom_update_byte(&EE_led_count, val);
         }
         break;
 #endif
 
     case RQ_GET_LED_COUNT:
-        usbMsgPtr = &leds.led_count;
+        usbMsgPtr = &bloenk.led_count;
         ret = 1;
         break;
 
@@ -97,7 +97,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
     if ((req->bmRequestType & USBRQ_TYPE_MASK) != USBRQ_TYPE_VENDOR)
         return 0;
 
-    if (leds.version == BLOENK_LEGACY)
+    if (bloenk.version == BLOENK_LEGACY)
         return handle_legacy(req);
 
     return 0;
@@ -111,14 +111,14 @@ int main(void) {
 
 #ifndef BLOENK_LED_COUNT
     eeprom_busy_wait();
-    leds.led_count = eeprom_read_byte(&EE_led_count);
-    if (leds.led_count == 0xFF)
-        leds.led_count = LED_DEFAULT_COUNT;
+    bloenk.led_count = eeprom_read_byte(&EE_led_count);
+    if (bloenk.led_count == 0xFF)
+        bloenk.led_count = LED_DEFAULT_COUNT;
 #else
-    leds.led_count = LED_DEFAULT_COUNT;
+    bloenk.led_count = LED_DEFAULT_COUNT;
 #endif
     // Technically this will be zero initialised
-    leds.version = BLOENK_LEGACY;
+    bloenk.version = BLOENK_LEGACY;
 
     while (1) {
         wdt_reset();
