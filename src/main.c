@@ -33,7 +33,9 @@ struct bloenk {
 };
 
 uint8_t EE_led_count EEMEM = 1;
-static struct bloenk bloenk;
+static struct bloenk bloenk = {
+    .version = BLOENK_LEGACY
+};
 
 static usbMsgLen_t handle_legacy(const usbRequest_t* const req) {
     uint8_t ret = 0;
@@ -117,8 +119,6 @@ int main(void) {
 #else
     bloenk.led_count = LED_DEFAULT_COUNT;
 #endif
-    // Technically this will be zero initialised
-    bloenk.version = BLOENK_LEGACY;
 
     while (1) {
         wdt_reset();
