@@ -1,0 +1,25 @@
+# Example PlatformIO Project Configuration Override
+# ------------------------------------------------------------------------------
+# Copy to platformio_override.ini to activate overrides
+# ------------------------------------------------------------------------------
+# Please visit documentation: https://docs.platformio.org/page/projectconf.html
+
+#
+# Use Arduino as ISP (or real stdk500v1, probably with a different port) for uploading
+#
+[env]
+upload_protocol = stk500v1
+upload_port = /dev/ttyACM*
+upload_speed = 19200
+upload_flags =
+    -C
+    ${platformio.packages_dir}/tool-avrdude/avrdude.conf
+    -p
+    $BOARD_MCU
+    -P
+    $UPLOAD_PORT
+    -b
+    $UPLOAD_SPEED
+    -c
+    avrisp
+upload_command = avrdude $UPLOAD_FLAGS -U flash:w:$SOURCE:i

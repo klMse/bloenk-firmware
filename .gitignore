@@ -1,4 +1,5 @@
 .pio
+platformio_override.ini
 
 # Clang tools
 .cache/
